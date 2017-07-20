@@ -6,15 +6,16 @@ import monitor from './monitor';
 const steamClient = new steam.SteamClient();
 const steamUser = new steam.SteamUser(steamClient);
 const steamFriends = new steam.SteamFriends(steamClient);
-const Dota2 = new dota2.Dota2Client(steamClient, true);
+const Dota2 = new dota2.Dota2Client(steamClient, false, false);
 
 function launch() {
   function onSteamLogOn(logonResp: any) {
     if (logonResp.eresult === steam.EResult.OK) {
       console.log('Logged on.');
+      console.log('Launching Dota2...');
       Dota2.launch();
       Dota2.on('ready', () => {
-        console.log('Dota 2 is ready');
+        console.log('Launched.');
         monitor.init(Dota2);
         monitor.start();
       });
@@ -25,8 +26,11 @@ function launch() {
     console.log('Connection closed by server: ', error);
   }
 
+  console.log('Connecting to steam...');
   steamClient.connect();
   steamClient.on('connected', () => {
+    console.log('Connected.');
+    console.log('Logging in to account...');
     steamUser.logOn({
       account_name: config.username,
       password: config.password,
