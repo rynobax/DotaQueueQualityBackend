@@ -1,0 +1,23 @@
+{
+  "name": "dota",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node index.ts",
+    "lint": "tslint */*.ts",
+    "build": "tsc"
+  },
+  "author": "Ryan Baxley",
+  "license": "ISC",
+  "dependencies": {
+    "dota2": "^5.1.0",
+    "steam": "^1.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^8.0.14",
+    "ts-node": "^3.2.0",
+    "tslint": "^5.5.0",
+    "typescript": "^2.4.2"
+  }
+}
