@@ -68,7 +68,6 @@ function getPlayerRegion(playerId: number): Promise<string> {
           const json = JSON.parse(body);
           if(json.error) {
             if(json.error === 'rate limit exceeded') {
-              console.log('Rate limit exceeded, waiting 1 sec');
               setTimeout(() => {
                 resolve(getPlayerRegion(playerId));
               }, 1000);
@@ -88,7 +87,6 @@ function getPlayerRegion(playerId: number): Promise<string> {
           const topRegion = getTopRegion(regions);
           resolve(topRegion);
         } catch(e) {
-          console.log('body: ', body);
           reject(e);
         }
       }
@@ -99,7 +97,7 @@ function getPlayerRegion(playerId: number): Promise<string> {
 function getLiveMatchRegionFromPlayers(playerIds: number[]): Promise<string> {
   return new Promise(async (resolve, reject) => {
     // How many players that need to have the same region
-    const matchingPlayersLimit = 3;
+    const matchingPlayersLimit = 2;
     const regions: {[k: string]: number} = {};
     for(const playerId of playerIds) {
       const region = await getPlayerRegion(playerId);

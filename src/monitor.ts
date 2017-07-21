@@ -5,20 +5,11 @@ const ProgressBar = require('progress');
 const barLength = 20;
 
 let d2: any = null;
-let updateTimeout: NodeJS.Timer = null;
 
 const MMR_CUTOFF = 5000;
 
 function init(Dota2: any) {
   d2 = Dota2;
-}
-
-function start() {
-  update();
-}
-
-function stop() {
-  clearTimeout(updateTimeout);
 }
 
 interface STVGamesData {
@@ -44,7 +35,6 @@ let sourceTVGamesDataListening = false;
 
 function getGamesData(pages: number): Promise<ParsedStvGame[]> {
   return new Promise((resolve, reject) => {
-    // TODO: use leagued_id to filter out league matches?
     let recievedPages = 0;
     const games: ParsedStvGame[] = [];
     const bar = new ProgressBar('Getting game pages :bar', { total: pages, width: barLength });
@@ -75,15 +65,20 @@ function getGamesData(pages: number): Promise<ParsedStvGame[]> {
   });
 }
 
-async function update() {
+interface gamesUpdate {
+  date: number,
+  games: {[k: string]: number[]}
+}
+
+async function update(): Promise<gamesUpdate> {
+  const now = new Date();
+
   let games: ParsedStvGame[] = [];
   games = await getGamesData(10);
   games = uniqBy(games, 'lobby_id');
   games = games.filter((game) => {
-    if(game.league_id !== 0) console.log('non-zero league id: ', game.league_id);
     return game.average_mmr > MMR_CUTOFF;
   });
-  console.log(`Games with mmr > ${MMR_CUTOFF}: ${games.length}`)
 
   // Get region of each game
   const bar = new ProgressBar('Getting match regions :bar', { total: games.length, width: barLength });
@@ -93,21 +88,7 @@ async function update() {
     bar.tick();
   }
 
-  //console.log('\nGames');
-  //console.log(games);
-
-  const gamesPerRegion = games.reduce((obj: { [k: string ]: number }, {region}) => {
-    if(obj[region] === undefined) {
-      obj[region] = 0;
-    }
-    obj[region]++;
-    return obj;
-  }, {});
-
-  console.log('\nGames Per Region');
-  console.log(gamesPerRegion);
-
-  const averageRegionMmr = games.reduce((obj: { [k: string ]: number[] }, {region, average_mmr}) => {
+  const mmrPerRegion = games.reduce((obj: { [k: string ]: number[] }, {region, average_mmr}) => {
     if(obj[region] === undefined) {
       obj[region] = [];
     }
@@ -115,14 +96,15 @@ async function update() {
     return obj;
   }, {});
 
-  console.log('\nAverage Region MMR')
-  console.log(averageRegionMmr);
-  process.exit();
+  return {
+    date: now.getTime(),
+    games: mmrPerRegion
+  };
 }
 
 
-export default {
+export {
   init,
-  start,
-  stop,
+  update,
+  gamesUpdate
 };
