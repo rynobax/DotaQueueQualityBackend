@@ -10,19 +10,16 @@ const options = {
   waitForActive: true, // Wait for table to be created before trying to use it
   waitForActiveTimeout: 60000 // wait 3 minutes for table to activate
 }
-dynamoose.setDefaults(options)
-dynamoose.local();
-
-const MmrDb = dynamoose.model('MmrDb-' + version, { id: Number, name: String });
-
 const config = require('../config');
 dynamoose.AWS.config.update({
   accessKeyId: config.accessKeyId,
   secretAccessKey: config.secretAccessKey,
   region: config.region
 });
+dynamoose.setDefaults(options)
+dynamoose.local();
 
-const MatchSchema = new dynamoose.Schema({
+const MatchDataSchema = new dynamoose.Schema({
   date: {
     type: Number,
     hashKey: true
@@ -31,6 +28,8 @@ const MatchSchema = new dynamoose.Schema({
     type: String
   },
 });
+
+const Match = dynamoose.model('MatchData'+version, MatchDataSchema);
 
 function addToDB(gamesUpdate: gamesUpdate) {
   return new Promise((resolve, reject) => {
@@ -41,15 +40,34 @@ function addToDB(gamesUpdate: gamesUpdate) {
     } catch (e) {
       return reject(e);
     }
-    const match = new MatchSchema({
+    const match = new Match({
       date: date,
       games: gamesJson
     });
+    console.log('Saving to DB...');
     match.save((err: Error) => {
       if(err) reject(err);
+      console.log('Done');
       resolve(games);
     });
   })
 }
 
-export {addToDB};
+function getAll(){
+  interface data {
+    date: number,
+    games: string
+  }
+  return new Promise((resolve, reject) => {
+    Match.scan().all().exec((err: Error, data: any) => {
+      resolve(data.map(({date, games}: data) => {
+        return {
+          date,
+          games: JSON.parse(games)
+        }
+      }));
+    });
+  });
+}
+
+export {addToDB, getAll};

@@ -5,8 +5,10 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node index.ts",
+    "recur": "ts-node ./scripts/recur.ts",
     "lint": "tslint */*.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "get": "ts-node ./scripts/get.ts"
   },
   "author": "Ryan Baxley",
   "license": "ISC",
@@ -19,6 +21,7 @@
     "dynamoose": "^0.8.3",
     "lodash": "^4.17.4",
     "long": "^3.2.0",
+    "node-schedule": "^1.2.3",
     "progress": "^2.0.0",
     "request": "^2.81.0",
     "steam": "^1.4.0"

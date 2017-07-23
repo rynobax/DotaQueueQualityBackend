@@ -3,13 +3,14 @@ const steam = require('steam');
 import {init, update, gamesUpdate} from './monitor';
 
 const config = require('../config');
-const steamClient = new steam.SteamClient();
-const steamUser = new steam.SteamUser(steamClient);
-const steamFriends = new steam.SteamFriends(steamClient);
-const Dota2 = new dota2.Dota2Client(steamClient, false, false);
 
-function launch() {
+function getData() {
   return new Promise((resolve, reject) => {
+    const steamClient = new steam.SteamClient();
+    const steamUser = new steam.SteamUser(steamClient);
+    const steamFriends = new steam.SteamFriends(steamClient);
+    const Dota2 = new dota2.Dota2Client(steamClient, false, false);
+
     function onSteamLogOn(logonResp: any) {
       if (logonResp.eresult === steam.EResult.OK) {
         console.log('Logged on.');
@@ -18,7 +19,13 @@ function launch() {
         Dota2.on('ready', () => {
           console.log('Launched.');
           init(Dota2);
-          resolve(update());
+          update().then((data) => {
+            console.log('Exiting dota');
+            Dota2.exit();
+            console.log('Exiting steam');
+            steamClient.disconnect();
+            resolve(data);
+          });
         });
       }
     }
@@ -43,4 +50,4 @@ function launch() {
   });
 }
 
-export {launch, gamesUpdate};
+export {getData, gamesUpdate};
