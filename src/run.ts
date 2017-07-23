@@ -1,5 +1,5 @@
-import { getData, gamesUpdate} from './getData';
 import { addToDB } from './db';
+import { GamesUpdate, getData } from './getData';
 
 function run() {
   getData()

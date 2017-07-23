@@ -8,7 +8,8 @@
     "recur": "ts-node ./scripts/recur.ts",
     "lint": "tslint */*.ts",
     "build": "tsc",
-    "get": "ts-node ./scripts/get.ts"
+    "get": "ts-node ./scripts/get.ts",
+    "print": "ts-node ./scripts/print.ts"
   },
   "author": "Ryan Baxley",
   "license": "ISC",

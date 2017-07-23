@@ -1,6 +1,6 @@
 const dota2 = require('dota2');
 const steam = require('steam');
-import {init, update, gamesUpdate} from './monitor';
+import { GamesUpdate, init, update } from './monitor';
 
 const config = require('../config');
 
@@ -50,4 +50,4 @@ function getData() {
   });
 }
 
-export {getData, gamesUpdate};
+export {getData, GamesUpdate};

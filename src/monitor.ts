@@ -17,18 +17,18 @@ interface STVGamesData {
 }
 
 interface RawSTVGame {
-  players: any[],
-  average_mmr: number,
-  lobby_id: any,
-  league_id: number
+  players: any[];
+  average_mmr: number;
+  lobby_id: any;
+  league_id: number;
 }
 
 interface ParsedStvGame {
-  playerIds: number[],
-  average_mmr: number,
-  lobby_id: number,
-  league_id: number,
-  region?: string
+  playerIds: number[];
+  average_mmr: number;
+  lobby_id: number;
+  league_id: number;
+  region?: string;
 }
 
 let sourceTVGamesDataListening = false;
@@ -41,20 +41,20 @@ function getGamesData(pages: number): Promise<ParsedStvGame[]> {
 
     sourceTVGamesDataListening = true;
     d2.requestSourceTVGames({
-      start_game: (pages-1)*10,
-      league_id: 0
+      league_id: 0,
+      start_game: (pages - 1) * 10,
     });
 
     d2.on('sourceTVGamesData', ({game_list}: STVGamesData) => {
-      if(!sourceTVGamesDataListening) return;
+      if (!sourceTVGamesDataListening) { return; }
       bar.tick();
       recievedPages++;
 
       games.push(...game_list.map(({players, average_mmr, lobby_id, league_id}) => ({
-        playerIds: players.map(({account_id}) => account_id),
         average_mmr,
+        league_id,
         lobby_id: fromBits(lobby_id.low, lobby_id.high, lobby_id.unsigned).toInt(),
-        league_id
+        playerIds: players.map(({account_id}) => account_id)
       })));
 
       if(recievedPages === pages) {
@@ -65,12 +65,12 @@ function getGamesData(pages: number): Promise<ParsedStvGame[]> {
   });
 }
 
-interface gamesUpdate {
-  date: number,
-  games: {[k: string]: number[]}
+interface GamesUpdate {
+  date: number;
+  games: {[k: string]: number[]};
 }
 
-async function update(): Promise<gamesUpdate> {
+async function update(): Promise<GamesUpdate> {
   const now = new Date();
 
   let games: ParsedStvGame[] = [];
@@ -82,14 +82,14 @@ async function update(): Promise<gamesUpdate> {
 
   // Get region of each game
   const bar = new ProgressBar('Getting match regions :bar', { total: games.length, width: barLength });
-  for(const game of games) {
+  for (const game of games) {
     const regionsAccumulator = {};
     game.region = await getLiveMatchRegionFromPlayers(game.playerIds);
     bar.tick();
   }
 
   const mmrPerRegion = games.reduce((obj: { [k: string ]: number[] }, {region, average_mmr}) => {
-    if(obj[region] === undefined) {
+    if (obj[region] === undefined) {
       obj[region] = [];
     }
     obj[region].push(average_mmr);
@@ -98,13 +98,12 @@ async function update(): Promise<gamesUpdate> {
 
   return {
     date: now.getTime(),
-    games: mmrPerRegion
+    games: mmrPerRegion,
   };
 }
 
-
 export {
+  GamesUpdate,
   init,
   update,
-  gamesUpdate
 };
