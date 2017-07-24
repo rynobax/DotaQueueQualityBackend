@@ -13,7 +13,7 @@ function init(Dota2: any) {
 }
 
 interface STVGamesData {
-  game_list: RawSTVGame[]
+  game_list: RawSTVGame[];
 }
 
 interface RawSTVGame {
@@ -54,10 +54,10 @@ function getGamesData(pages: number): Promise<ParsedStvGame[]> {
         average_mmr,
         league_id,
         lobby_id: fromBits(lobby_id.low, lobby_id.high, lobby_id.unsigned).toInt(),
-        playerIds: players.map(({account_id}) => account_id)
+        playerIds: players.map(({account_id}) => account_id),
       })));
 
-      if(recievedPages === pages) {
+      if (recievedPages === pages) {
         sourceTVGamesDataListening = false;
         resolve(games);
       }

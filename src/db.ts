@@ -1,15 +1,13 @@
 const dynamoose = require('dynamoose');
 import { GamesUpdate } from './monitor';
 
-const version = 1; // Update version if schema changes
 const options = {
-  create: true, // Create table in DB, if it does not exist,
-  update: false, // Update remote indexes if they do not match local index structure
+  create: true,
+  update: false,
+  waitForActive: false, // Disable for production
+  waitForActiveTimeout: 60000,
+};
 
-  // Disable these for production
-  waitForActive: true, // Wait for table to be created before trying to use it
-  waitForActiveTimeout: 60000, // wait 3 minutes for table to activate
-}
 const config = require('../config');
 dynamoose.AWS.config.update({
   accessKeyId: config.accessKeyId,
@@ -17,7 +15,6 @@ dynamoose.AWS.config.update({
   secretAccessKey: config.secretAccessKey,
 });
 dynamoose.setDefaults(options);
-dynamoose.local();
 
 const MatchDataSchema = new dynamoose.Schema({
   date: {
@@ -29,7 +26,7 @@ const MatchDataSchema = new dynamoose.Schema({
   },
 });
 
-const Match = dynamoose.model('MatchData'+version, MatchDataSchema);
+const Match = dynamoose.model('MatchData', MatchDataSchema);
 
 function addToDB(gamesUpdate: GamesUpdate) {
   return new Promise((resolve, reject) => {
@@ -63,8 +60,8 @@ function getAll() {
       resolve(data.map(({date, games}: Data) => {
         return {
           date,
-          games: JSON.parse(games)
-        }
+          games: JSON.parse(games),
+        };
       }));
     });
   });

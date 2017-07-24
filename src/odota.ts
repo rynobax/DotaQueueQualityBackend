@@ -28,11 +28,13 @@ async function observeApiLimit() {
 function getTopRegion(regions: {[k: string]: number}): string {
   let topCount = 0;
   let topRegion = '';
-  for(const region in regions) {
-    const regionCount = regions[region];
-    if(regionCount > topCount) {
-      topRegion = region;
-      topCount = regionCount;
+  for (const region in regions) {
+    if (regions.hasOwnProperty(region)) {
+      const regionCount = regions[region];
+      if (regionCount > topCount) {
+        topRegion = region;
+        topCount = regionCount;
+      }
     }
   }
   return topRegion;
@@ -45,8 +47,8 @@ function getMatchRegion(matchId: number): Promise<string> {
     get(matchEndpoint(matchId), {}, (error, response, body) => {
       try {
         const json = JSON.parse(body);
-        if(json.error) {
-          if(json.error === 'rate limit exceeded') {
+        if (json.error) {
+          if (json.error === 'rate limit exceeded') {
             setTimeout(() => {
               resolve(getMatchRegion(matchId));
             }, 1000);
@@ -59,10 +61,10 @@ function getMatchRegion(matchId: number): Promise<string> {
         const regionName = dotaconstants.region[regionId];
         getMatchRegionErrorCount = 0;
         resolve(regionName);
-      } catch(e) {
+      } catch (e) {
         getMatchRegionErrorCount++;
-        console.log(`getMatchRegion failure for id ${matchId} - ${getMatchRegionErrorCount}`)
-        if(getMatchRegionErrorCount > 3) {
+        console.log(`getMatchRegion failure for id ${matchId} - ${getMatchRegionErrorCount}`);
+        if (getMatchRegionErrorCount > 3) {
           console.error('getMatchRegion body: ', body);
           reject(e);
         } else {
@@ -78,15 +80,15 @@ function getPlayerRegion(playerId: number): Promise<string> {
   return new Promise(async (resolve, reject) => {
     await observeApiLimit();
     get(recentMatchesEndpoint(playerId), {}, async (error, response, body) => {
-      if(error) { 
+      if (error) {
         reject(error);
       } else {
-        try{
+        try {
           // Get matches to check the users region
           let matchesToCheck = 3;
           const json = JSON.parse(body);
-          if(json.error) {
-            if(json.error === 'rate limit exceeded') {
+          if (json.error) {
+            if (json.error === 'rate limit exceeded') {
               setTimeout(() => {
                 resolve(getPlayerRegion(playerId));
               }, 1000);
@@ -96,25 +98,25 @@ function getPlayerRegion(playerId: number): Promise<string> {
           }
           const matches = json;
           const regions: {[k: string]: number} = {};
-          if(matches.length < matchesToCheck) {
+          if (matches.length < matchesToCheck) {
             matchesToCheck = matches.length;
           }
-          for(let i = 0; i < matchesToCheck; i++) {
+          for (let i = 0; i < matchesToCheck; i++) {
             const match = matches[i];
             const cluster = match.cluster;
             const regionId = dotaconstants.cluster[cluster];
             const matchRegion = dotaconstants.region[regionId];
-            if(regions[matchRegion] === undefined) regions[matchRegion] = 0
+            if (regions[matchRegion] === undefined) { regions[matchRegion] = 0; }
             regions[matchRegion]++;
           }
 
           const topRegion = getTopRegion(regions);
           playerRegionErrorCount = 0;
           resolve(topRegion);
-        } catch(e) {
+        } catch (e) {
           playerRegionErrorCount++;
-          console.log(`getPlayerRegion failure for id ${playerId} - ${playerRegionErrorCount}`)
-          if(playerRegionErrorCount > 3) {
+          console.log(`getPlayerRegion failure for id ${playerId} - ${playerRegionErrorCount}`);
+          if (playerRegionErrorCount > 3) {
             console.error('getPlayerRegionNew body: ', body);
             reject(e);
           } else {
@@ -122,7 +124,7 @@ function getPlayerRegion(playerId: number): Promise<string> {
           }
         }
       }
-    })
+    });
   });
 }
 
@@ -131,11 +133,11 @@ function getLiveMatchRegionFromPlayers(playerIds: number[]): Promise<string> {
     // How many players that need to have the same region
     const matchingPlayersLimit = 2;
     const regions: {[k: string]: number} = {};
-    for(const playerId of playerIds) {
+    for (const playerId of playerIds) {
       const region = await getPlayerRegion(playerId);
-      if(regions[region] === undefined) regions[region] = 0;
+      if (regions[region] === undefined) { regions[region] = 0; }
       regions[region]++;
-      if(regions[region] > matchingPlayersLimit) return resolve(region);
+      if (regions[region] > matchingPlayersLimit) { return resolve(region); }
     }
     // No region met the criteria so just return the top
     const topRegion = getTopRegion(regions);

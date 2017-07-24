@@ -1,2 +1,4 @@
 import {run} from './src/run';
-run();
+exports.handler = (event: any, context: any) => {
+    run();
+};
