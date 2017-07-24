@@ -3,7 +3,7 @@
     "module": "commonjs",
     "noImplicitAny": true,
     "removeComments": true,
-    "sourceMap": true,
+    "sourceMap": false,
     "typeRoots": ["node_modules/@types"],
     "moduleResolution": "node",
     "outDir": "build",
@@ -16,7 +16,8 @@
     "target": "es6"
   },
   "include": [
-      "index.ts"
+      "index.ts",
+      "config.ts"
   ],
   "exclude": [
       "node_modules",

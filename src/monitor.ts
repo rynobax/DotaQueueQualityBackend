@@ -1,7 +1,6 @@
-import { uniqBy } from 'lodash';
+const uniqBy = require('lodash.uniqby');
 import { fromBits } from 'long';
 import { getLiveMatchRegionFromPlayers } from './odota';
-const ProgressBar = require('progress');
 const barLength = 20;
 
 let d2: any = null;
@@ -37,7 +36,6 @@ function getGamesData(pages: number): Promise<ParsedStvGame[]> {
   return new Promise((resolve, reject) => {
     let recievedPages = 0;
     const games: ParsedStvGame[] = [];
-    const bar = new ProgressBar('Getting game pages :bar', { total: pages, width: barLength });
 
     sourceTVGamesDataListening = true;
     d2.requestSourceTVGames({
@@ -47,7 +45,6 @@ function getGamesData(pages: number): Promise<ParsedStvGame[]> {
 
     d2.on('sourceTVGamesData', ({game_list}: STVGamesData) => {
       if (!sourceTVGamesDataListening) { return; }
-      bar.tick();
       recievedPages++;
 
       games.push(...game_list.map(({players, average_mmr, lobby_id, league_id}) => ({
@@ -71,6 +68,7 @@ interface GamesUpdate {
 }
 
 async function update(): Promise<GamesUpdate> {
+  console.log('Checking matches');
   const now = new Date();
 
   let games: ParsedStvGame[] = [];
@@ -81,11 +79,9 @@ async function update(): Promise<GamesUpdate> {
   });
 
   // Get region of each game
-  const bar = new ProgressBar('Getting match regions :bar', { total: games.length, width: barLength });
   for (const game of games) {
     const regionsAccumulator = {};
     game.region = await getLiveMatchRegionFromPlayers(game.playerIds);
-    bar.tick();
   }
 
   const mmrPerRegion = games.reduce((obj: { [k: string ]: number[] }, {region, average_mmr}) => {
@@ -95,7 +91,7 @@ async function update(): Promise<GamesUpdate> {
     obj[region].push(average_mmr);
     return obj;
   }, {});
-
+  console.log('Done');
   return {
     date: now.getTime(),
     games: mmrPerRegion,
